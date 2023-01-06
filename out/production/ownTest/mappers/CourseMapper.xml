@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org./dtd/mybatis-3-mapper.dtd">
+<!-- namespace表示命名空间-->
+<mapper namespace="wq.code.mapper.CourseMapper">
+    <!--配置课程结果关联映射,-->
+    <resultMap id="courseMap" type="wq.code.model.Course">
+        <id property="courseId" column="course_id"/>
+        <result property="courseName" column="course_name"/>
+        <result property="courseTeacher" column="course_teacher"/>
+        <result property="courseMax" column="course_max"/>
+        <result property="credit" column="credit"/>
+        <result property="courseInfo" column="course_info"/>
+    </resultMap>
+
+    <!--定义一个查询用于查询课程的信息，用于和studentMapper构成嵌套查询，传入的参数为学生表为与课程表的关系多表查询查找到的c_id,课程id-->
+    <select id="selectCourseByCourseId" resultMap="courseMap">
+        select course_id,course_name,course_teacher,course_max,credit,course_info from course where course_id=#{courseId}
+    </select>
+</mapper>

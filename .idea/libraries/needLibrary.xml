@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="needLibrary">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/mybatis/mybatis-3.5.9/mybatis-3.5.9/lib/asm-7.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/mybatis/mybatis-3.5.9/mybatis-3.5.9/lib/cglib-3.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/mybatis/mybatis-3.5.9/mybatis-3.5.9/lib/commons-logging-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/mybatis/mybatis-3.5.9/mybatis-3.5.9/lib/javassist-3.28.0-GA.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/mybatis/mybatis-3.5.9/mybatis-3.5.9/lib/log4j-1.2.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/mybatis/mybatis-3.5.9/mybatis-3.5.9/lib/log4j-api-2.17.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/mybatis/mybatis-3.5.9/mybatis-3.5.9/lib/mysql-connector-java-5.1.8.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/mybatis/mybatis-3.5.9/mybatis-3.5.9/lib/ognl-3.3.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org./dtd/mybatis-3-mapper.dtd">
+<!-- namespace表示命名空间-->
+<mapper namespace="wq.code.mapper.UserMapper">
+    <!--创建关联映射-->
+    <resultMap id="userMap" type="wq.code.model.User">
+        <id property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="userPassword" column="user_password"/>
+        <result property="userType" column="user_type"/>
+    </resultMap>
+    <resultMap id="userToTeacherOrStudent" type="wq.code.model.User" extends="userMap">
+        <association property="student" column="{studentId=s_id" select="wq.code.mapper.StudentMapper.selectStudentById"/>
+    </resultMap>
+    <!--嵌套查询，根据用户id来查找其对应的学生类-->
+    <select id="selectNestStudentWithUserBy" resultMap="userToTeacherOrStudent">
+        select u.user_id,u.user_name,u.user_password,u.user_type,us.s_id from user u inner join u_s us on us.s_id=u.user_id where user_id=#{userId}
+    </select>
+    
+
+</mapper>

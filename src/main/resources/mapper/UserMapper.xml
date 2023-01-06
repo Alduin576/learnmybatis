@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org./dtd/mybatis-3-mapper.dtd">
+<!-- namespace表示命名空间-->
+<mapper namespace="wq.service.UserMapper">
+    <!-- 配置结果映射 user -->
+    <resultMap id="userMap" type="wq.model.User">
+        <id property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="userPassword" column="user_password"/>
+        <result property="userInfo" column="user_info"/>
+        <result property="userEmail" column="user_email"/>
+        <result property="headImg" column="head_img"/>
+        <result property="createTime" column="create_time"/>
+        <result property="userBirthday" column="user_birthday"/>
+    </resultMap>
+    <!--role部分的要写到userMap中，也可以再另写一个resultMap 并继承userMap
+        并注意将两表中同名的字段经过别名来区别开 不使用association标签
+    -->
+    <resultMap id="user_roleMap" extends="userMap" type="wq.model.User">
+        <result property="role.roleId" column="role_id"/>
+        <result property="role.roleName" column="role_name"/>
+        <result property="role.enabled" column="enabled"/>
+        <result property="role.createBy" column="create_by"/>
+        <result property="role.createTime" column="role_create_time"/>
+    </resultMap>
+    <!--配置association的resultMap
+        嵌套结果查询
+    -->
+    <resultMap id="userAndRoleMap" extends="userMap" type="wq.model.User">
+        <association property="role" columnPrefix="role_" javaType="wq.model.Role">
+            <result property="roleId" column="role_id"/>
+            <result property="roleName" column="role_name"/>
+            <result property="enabled" column="enabled"/>
+            <result property="createBy" column="create_by"/>
+            <result property="createTime" column="create_time"/>
+        </association>
+    </resultMap>
+    <resultMap id="userAndRoleMap2" extends="userMap" type="wq.model.User">
+        <!--当引用外部的roleMap时，则需要加入RoleMapper.xml中的命名空间 再加上resultMap的id
+            嵌套结果查询
+        -->
+        <association property="role" columnPrefix="role_" resultMap="wq.service.RoleMapper.roleMap"/>
+    </resultMap>
+
+    <!--
+        嵌套查询，其中通过association中select属性来执行另外一条sql语句来查询到最后的结果。必须设置其命名空间+select的id
+    -->
+    <resultMap id="userRoleMapSelect" type="wq.model.User" extends="userMap">
+        <association property="role" column="{role_id=role_id}" select="wq.service.RoleMapper.selectRoleByRoleId" fetchType="lazy"/>
+    </resultMap>
+
+    <!--创建collection标签，User类中包含roleList属性存放 用户拥有的多个角色，实现一对多映射  查询方式为嵌套结果查询-->
+    <resultMap id="userRoleListMap" type="wq.model.User" extends="userMap">
+        <!--roleList collection标签,property属性对应User类中的roleList属性-->
+        <collection property="roleList" columnPrefix="role_" ofType="wq.model.Role">
+            <id property="roleId" column="role_id"/>
+            <result property="roleName" column="role_name"/>
+            <result property="enabled" column="enabled"/>
+            <result property="createBy" column="create_by"/>
+            <result property="createTime" column="create_time"/>
+        </collection>
+    </resultMap>
+    <!--上方resultMap标签的简化版-->
+    <resultMap id="userRoleListMap2" type="wq.model.User" extends="userMap">
+        <collection property="roleList" columnPrefix="role_" ofType="wq.model.Role" resultMap="wq.service.RoleMapper.roleMap" fetchType="lazy"/>
+    </resultMap>
+    <!--创建collection标签，user类中包含的roleList<Privilege>存放的privilege，此次实现查询到用户包含的角色拥有的权限-->
+    <!--嵌套结果查询，为便于测试不使用fetchType-->
+    <resultMap id="userRoleWithPrivilegeListMap" type="wq.model.User" extends="userMap">
+        <collection property="roleList" columnPrefix="role_" ofType="wq.model.Role" resultMap="wq.service.RoleMapper.rolePrivilegeListMap"/>
+    </resultMap>
+
+    <!--基本查询方法-->
+    <!--定义根据id查询用户的信息的方法-->
+    <select id="selectById" resultMap="userMap">
+        select user_id,user_name,user_password, user_info, head_img,create_time from user where user_id=#{userId}
+    </select>
+    <!--
+    基本查询方法
+    定义根据用户名和密码查找用户的方法
+    -->
+    <select id="selectByNameAndPassword" resultMap="userMap">
+        select user_id,user_name,user_password,user_info,user_email,head_img,create_time from user where
+        user_name=#{userName}
+        <if test="userPassword!=null and userPassword!=''">
+            and user_password=#{userPassword}
+        </if>
+    </select>
+    <!--在where语句中使用if 来达到多条件查询-->
+    <!--1.当只传入用户名时，根据模糊查询-->
+    <!--2.当只传入邮箱，需要邮箱精确匹配-->
+    <!--3.当 传入用户名和邮箱时，需要两个条件都符合-->
+    <select id="selectUserByUserNameAndUserEmail" resultMap="userMap">
+        select user_id,user_name,user_password,user_info,user_email,head_img,create_time from user where 1=1
+        <if test="userName!=null and userName!=''">and user_name like concat('%',#{userName},'%')</if>
+        <if test="userEmail!=null and userEmail!=''">and user_email=#{userEmail}</if>
+    </select>
+    <!--where标签测试
+        当where里面的条件满足时，则会去掉语句前面的and
+        如果where里面的条件不满足，也会去掉and 还不会添加where
+        这样的情况就不需要添加1=1
+     -->
+    <select id="selectUserByUserNameAndUserEmail2" resultMap="userMap">
+        select user_id,user_name,user_password,user_info,user_email,head_img,create_time from user
+        <where>
+            <if test="userName!=null and userName!=''">and user_name=#{userName}</if>
+            <if test="userEmail!=null and userEmail!=''">and user_email=#{userEmail}</if>
+        </where>
+    </select>
+    <!--在where语句中使用 choose、when、otherwise来达到多条件查询
+        1.当传入的id有值时，则优先使用id查询
+        2.如果id没有值，则判断用户名是否有值，有则使用用户名进行查询，如果没有则sql查询无结果-->
+    <select id="selectUserByIdAndUserName" resultMap="userMap">
+        select user_id,user_name,user_password,user_info,user_email,head_img,create_time from user where 1=1
+        <choose>
+            <when test="userId!=null">and user_id=#{userId}</when>
+            <when test="userName!=null and userName!=''">and user_name=#{userName}</when>
+            <otherwise>and 1=2</otherwise>
+        </choose>
+    </select>
+    <!--使用foreach来完成id集合作为参数作为查询条件查找多条记录,参数类型为集合 list-->
+    <select id="selectUserByIdList" resultMap="userMap">
+        select user_id,user_name,user_password,user_info,user_email,head_img,create_time from user where user_id in
+        <!--collection填入的值要与方法中传入的参数一样，而不是接口中方法中定义的参数-->
+        <foreach collection="list" open="(" close=")" separator="," item="userId" index="i">
+            <!--不能使用user_id=#{userId},使用#{userId}即可-->
+            #{userId}
+        </foreach>
+    </select>
+    <!--使用foreach来完成id集合为参数作为查询条件查找多条记录，参数类型为数组 array-->
+    <select id="selectUserByIdArray" resultMap="userMap">
+        select user_id,user_name,user_password,user_info,user_email,head_img,create_time from user where user_id in
+        <foreach collection="array" open="(" close=")" separator="," item="userId" index="i">
+            #{userId}
+        </foreach>
+    </select>
+    <!--使用foreach循环完成id集合作为参数作为查询条件查找多条记录。参数类型为Map类型
+        此时index中要填入的值发生了变化，从一般for循环的i变为了 map的key(键)
+    -->
+    <select id="selectUserByIdMap" resultMap="userMap">
+        select user_id,user_name,user_password,user_info,user_email,head_img,create_time from user where user_id in
+        <foreach collection="idMap" open="(" close=")" separator="," index="key" item="userId">
+            #{userId}
+        </foreach>
+    </select>
+    <!--使用foreach循环完成id集合作为参数作为查询条件查找多条记录。参数类型为对象类型
+    -->
+    <select id="selectUserByObject" parameterType="wq.query.UserQuery" resultType="wq.model.User">
+        select user_id,user_name,user_password,user_info,user_email,head_img,create_time from user where user_id in
+        <foreach collection="userIds" open="(" close=")" separator="," item="userId">
+            #{userId}
+        </foreach>
+    </select>
+    <!--
+        关联映射查询，高级查询
+        使用了user_roleMap 继承自userMap  不带association标签 的一对一关联映射，使用多表查询
+        嵌套结果查询
+    -->
+    <select id="selectUserRoleById" resultMap="user_roleMap">
+        select u.user_id,u.user_name,u.user_password,u.user_info,u.user_email,u.head_img,u.create_time,u.user_birthday
+        ,r.role_id,r.role_name,r.enabled,r.create_by,r.create_time role_create_time from
+        user u inner join user_role ur
+        on u.user_id=ur.user_id
+        inner join role r on ur.role_id=r.role_id
+        where u.user_id=#{userId}
+    </select>
+    <!--
+        关联映射查询，高级查询2
+        使用association标签的一对一关联映射
+        嵌套结果查询
+    -->
+    <select id="selectUserAndRoleById" resultMap="userAndRoleMap2">
+        <!--应是r.role_id而不是r.role_role_id, 后面不受那个columnPrefix前缀影响，前面为列名取别名是为了完成关联映射-->
+        <!--现是 一个用户对应一个角色 -->
+        select u.user_id,u.user_name,u.user_password,u.user_info,u.user_email,u.head_img,u.create_time,u.user_birthday
+        ,r.role_id role_role_id,r.role_name role_role_name,r.enabled role_enabled,r.create_by role_create_by,r.create_time role_create_time
+        from user u inner join user_role ur on u.user_id=ur.user_id
+        inner join role r on ur.role_id=r.role_id
+        where u.user_id=#{userId}
+    </select>
+    <!--
+        关联映射查询
+        使用association标签
+        嵌套查询
+    -->
+    <select id="selectUserRoleByIdSelect" resultMap="userRoleMapSelect">
+        select u.user_id,u.user_name,u.user_password,u.user_info,u.user_email,ur.role_id
+        from user u inner join user_role ur on
+        ur.user_id=u.user_id where u.user_id=#{userId}
+    </select>
+
+    <!--一对多映射查询，实现查询所有用户对应拥有的角色-->
+    <select id="selectAllUsersAndRoles" resultMap="userRoleListMap2">
+        select u.user_id,u.user_name,u.user_password,u.user_info,u.user_email,u.create_time,u.user_birthday,
+            r.role_id role_role_id,r.role_name role_role_name,r.enabled role_enabled,r.create_by role_create_by,r.create_time role_create_time
+            from user u inner join user_role ur on u.user_id=ur.user_id inner join role r on r.role_id=ur.role_id
+    </select>
+    <!--一对多映射查询，实现查询所有用户包含的角色所拥有的权限。
+        特别注意：由于rolePrivilegeListMap嵌套在userRoleWithPrivilegeListMap中，其嵌套在的resultMap指定前缀为role_,而rolePrivilegeListMap本身指定的前缀为pri_
+        两个前缀按顺序来排列应为 role_pri_  在下方指定别名时，比如id则为 pr.role_pri_privilege_id
+    -->
+    <select id="selectAllUserAndRolesWithPrivilege" resultMap="userRoleWithPrivilegeListMap">
+        select u.user_id,u.user_name,u.user_password,u.user_info,
+        r.role_id role_role_id,r.role_name role_role_name,r.enabled role_enabled, r.create_by role_create_by,
+        pr.privilege_id role_pri_privilege_id,pr.privilege_name role_pri_privilege_name,pr.privilege_url role_pri_privilege_url
+        from user u
+        inner join user_role ur on u.user_id=ur.user_id
+        inner join role r on r.role_id=ur.role_id
+        inner join role_privilege rp on rp.role_id=r.role_id
+        inner join privilege pr on pr.privilege_id=rp.privilege_id
+    </select>
+    <!--添加方法-->
+    <!--使用insert来添加用户-->
+    <insert id="addUser" useGeneratedKeys="true" keyProperty="userId">
+        insert into user(
+            <if test="userName!=null and userName!=''">user_name,</if>
+            <if test="userPassword!=null and userPassword!=''">user_password,</if>
+            <if test="userEmail!=null and userEmail!=''">user_email,</if>
+            user_info,head_img
+            <if test="createTime!=null and createTime!=''">,create_time</if>
+        )
+        values(
+            <if test="userName!=null and userName!=''">#{userName},</if>
+            <if test="userPassword!=null and userPassword!=''">#{userPassword},</if>
+            <if test="userEmail!=null and userEmail!=''">#{userEmail}</if>
+            #{userInfo},#{headImg}
+            <if test="createTime!=null and createTime!=''">,#{createTime}</if>
+        )
+    </insert>
+    <!--添加用户 使用foreach标签批量添加 将参数类型设定为list-->
+    <insert id="addUserBatch">
+        insert into user(user_name,user_password,user_email,user_info,head_img,create_time
+<!--            <if test="user.userName!=null and user.userName!=''"></if>-->
+<!--            <if test="user.userPassword!=null and user.userPassword!=''"></if>-->
+<!--            <if test="user.userEmail!=null and user.userEmail!=''"></if>-->
+<!--            <if test="user.userInfo!=null and user.userInfo!=''"></if>-->
+<!--            <if test="user.headImg!=null"></if>-->
+<!--            <if test="user.createTime!=null"></if>-->
+        )values
+        <!--之前报错不通过是因为自己没有加上item属性-->
+            <foreach collection="list" separator="," item="user">
+                (#{user.userName},#{user.userPassword},#{user.userEmail},#{user.userInfo},#{user.headImg},#{user.createTime,jdbcType=TIMESTAMP})
+<!--                <if test="user.userName!=null and user.userName!=''"></if>-->
+<!--                <if test="user.userPassword!=null and user.userPassword!=''"></if>-->
+<!--                <if test="user.userEmail!=null and user.userEmail!=''"></if>-->
+<!--                <if test="user.userInfo!=null and user.userInfo!=''"></if>-->
+<!--                <if test="user.headImg!=null"></if>-->
+<!--                <if test="user.createTime!=null"></if>-->
+            </foreach>
+
+    </insert>
+    <!--更新用户-->
+    <update id="updateUser">
+        update user set
+            <if test="userName!=null and userName!=''">user_name=#{userName},</if>
+            <if test="userPassword!=null and userPassword!=''">
+                user_password=#{userPassword},
+            </if>
+            <if test="userInfo!=null and userInfo!=''">
+                user_info=#{userInfo},
+            </if>
+            <if test="userEmail!=null and userEmail!=''">
+                user_email=#{userEmail},
+            </if>
+            <if test="headImg!=null and headImg!=''">
+                user_img=#{headImg},
+            </if>
+            <if test="createTime!=null and createTime!=''">
+                create_time=#{createTime},
+            </if>
+            user_id=#{userId}
+            where user_id=#{userId}
+    </update>
+    <!--使用set标签来动态更新列
+        set中的元素如果有返回值，则会在前面加上set，其中以逗号结尾的字符串会被去掉逗号","
+    -->
+    <update id="updateUserSelective">
+        update user
+        <set>
+            <if test="userName!=null and userName!=''">user_name=#{userName},</if>
+            <if test="userPassword!=null and userPassword!=''">user_password=#{userPassword},</if>
+            <if test="userInfo!=null and userInfo!=''">user_info=#{userInfo},</if>
+            <if test="userEmail!=null and userEmail!=''">user_email=#{userEmail},</if>
+            <if test="headImg!=null">head_img=#{headImg},</if>
+            <if test="createTime!=null">create_time=#{createTime},</if>
+            user_id=#{userId}
+        </set>
+        where user_id=#{userId}
+    </update>
+    <!--批量更新用户信息，使用foreach标签实现-->
+    <update id="updateUserBatch">
+        update user set
+        <foreach collection="_parameter" item="val" index="key" separator=",">
+            <!--!!!!应该是${key} 而不是#{key}!!!!!!-->
+            ${key}=#{val}
+        </foreach>
+        where user_id=#{user_id}
+    </update>
+
+
+    <!--删除用户-->
+    <delete id="deleteUserById">
+        delete from user where user_id=#{userId}
+    </delete>
+
+    <!--测试类型转换,对应的数据库的类型转换为java类型-->
+    <select id="testTypeHandler" resultMap="userMap">
+        select user_id,user_birthday from user where user_id=#{userId}
+    </select>
+    <!--测试类型转换之 java类型转换为数据库所需要的类型-->
+    <insert id="testTypeHandler2" useGeneratedKeys="true" keyProperty="userId">
+        insert into user(
+        <if test="userName!=null and userName!=''">user_name,</if>
+        <if test="userPassword!=null and userPassword!=''">user_password,</if>
+        <if test="userEmail!=null and userEmail!=''">user_email,</if>
+        <if test="userInfo!=null and userInfo!=''">user_info,</if>
+        <if test="headImg!=null">head_img,</if>
+        <if test="createTime!=null and createTime!=''">,create_time</if>
+        <if test="userBirthday!=null">user_birthday</if>
+        )
+        values(
+        <if test="userName!=null and userName!=''">#{userName},</if>
+        <if test="userPassword!=null and userPassword!=''">#{userPassword},</if>
+        <if test="userEmail!=null and userEmail!=''">#{userEmail},</if>
+        <if test="userInfo!=null and userInfo!=''">#{userInfo},</if>
+        <if test="headImg!=null">#{headImg},</if>
+        <if test="createTime!=null and createTime!=''">#{createTime},</if>
+        <if test="userBirthday!=null">#{userBirthday}</if>
+        )
+    </insert>
+</mapper>

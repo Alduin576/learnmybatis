@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org./dtd/mybatis-3-mapper.dtd">
+<!-- namespace表示命名空间,映射wq.code.mapper.StudentMapper接口-->
+<mapper namespace="wq.code.mapper.StudentMapper">
+    <!--定义关联映射resultMap-->
+    <resultMap id="studentMap" type="wq.code.model.Student">
+        <!--学生类-学生表 学号、姓名、班级、电话号码、邮箱、qq-->
+        <id property="studentId" column="student_id"/>
+        <result property="studentName" column="student_name"/>
+        <result property="studentClass" column="student_class"/>
+        <result property="telephone" column="tel"/>
+        <result property="studentEmail" column="email"/>
+        <result property="studentQQ" column="qq"/>
+    </resultMap>
+    <!--定义关联映射studentCourseMap,包含学生所选的课程-->
+    <resultMap id="studentCourseMap" extends="studentMap" type="wq.code.model.Student">
+        <association property="selectedCourse" columnPrefix="cou_" resultMap="wq.code.mapper.CourseMapper.courseMap" fetchType="lazy"/>
+    </resultMap>
+    <!--定义关联映射studentCourseMapNest 其中column表示的是将c_id传给course_id，其中c_id为学生表与学生课程表多表查询到的id
+        select为执行的sql语句，其执行的是CourseMapper中的sql语句
+        无需指定 resultMap 因为可以认为select 已链接到了CourseMapper中的resultMap
+    -->
+    <resultMap id="studentCourseMapNest" type="wq.code.model.Student" extends="studentMap">
+        <association property="selectedCourse" column="{courseId=c_id}" select="wq.code.mapper.CourseMapper.selectCourseByCourseId"/>
+    </resultMap>
+    <!--基本查询-->
+    <select id="selectStudentById" resultMap="studentMap">
+        select student_id,student_name,student_class,tel,email,qq from student where student_id=#{studentId}
+    </select>
+    <!--高级查询，嵌套结果查询-->
+    <select id="selectStudentCourseByStudentId" resultMap="studentCourseMap">
+        select s.student_id,s.student_name,s.student_class,s.tel,s.email,s.qq,
+               c.course_id cou_course_id,c.course_name cou_course_name,c.course_teacher cou_course_teacher,c.course_max cou_course_max,
+               c.credit cou_credit,c.course_info cou_course_info
+        from student s inner join s_c sc on student_id=s_id
+        inner join course c on c_id=course_id where student_id=#{studentId}
+    </select>
+    <!--高级查询，嵌套查询-->
+    <select id="selectCourseByCourseIdStudentIdWithStudent" resultMap="studentCourseMapNest">
+        select s.student_id,s.student_name,s.student_class,s.tel,s.email,s.qq,
+        sc.c_id from student s inner join s_c sc on s_id=student_id where student_id=#{studentId}
+    </select>
+
+</mapper>

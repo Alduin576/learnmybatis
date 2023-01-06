@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org./dtd/mybatis-3-mapper.dtd">
+<!-- namespace表示命名空间-->
+<mapper namespace="wq.service.RoleMapper">
+    <!--id和UserMapper.xml中的association中的resultMap中的属性值相同-->
+    <resultMap id="roleMap" type="wq.model.Role">
+        <id property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="enabled" column="enabled"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <resultMap id="rolePrivilegeListMap" type="wq.model.Role" extends="roleMap">
+        <!--pri_表示privilege_ time:2022/4/4-->
+        <collection property="privilegeList" columnPrefix="pri_" resultMap="wq.service.PrivilegeMapper.privilegeMap"/>
+    </resultMap>
+    <!--
+        嵌套查询
+    -->
+    <select id="selectRoleByRoleId" resultMap="roleMap">
+        select role_id,role_name,enabled,create_by,create_time from role where role_id=#{role_id}
+    </select>
+</mapper>

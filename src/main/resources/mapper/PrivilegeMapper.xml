@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org./dtd/mybatis-3-mapper.dtd">
+<!-- namespace表示命名空间-->
+<!--权限映射-->
+<mapper namespace="wq.service.PrivilegeMapper">
+    <!--配置privilege的映射结果，用于嵌套结果查询和嵌套查询-->
+    <resultMap id="privilegeMap" type="wq.model.Privilege">
+        <id property="privilegeId" column="privilege_id"/>
+        <result property="privilegeName" column="privilege_name"/>
+        <result property="privilegeUrl" column="privilege_url"/>
+    </resultMap>
+    <!--P表示privilege-->
+    <select id="selectPrivilegeByP_id">
+        select privilege_id,privilege_name,privilege_url from privilege where privilege_id=#{privilegeId}
+    </select>
+
+</mapper>

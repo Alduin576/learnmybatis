@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/spring framework/spring-framework-4.3.6.RELEASE-dist/spring-framework-4.3.6.RELEASE/libs/spring-beans-4.3.6.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/spring framework/spring-framework-4.3.6.RELEASE-dist/spring-framework-4.3.6.RELEASE/libs/spring-context-4.3.6.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/spring framework/spring-framework-4.3.6.RELEASE-dist/spring-framework-4.3.6.RELEASE/libs/spring-core-4.3.6.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/spring framework/spring-framework-4.3.6.RELEASE-dist/spring-framework-4.3.6.RELEASE/libs/spring-expression-4.3.6.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/spring framework/spring-framework-4.3.6.RELEASE-dist/spring-framework-4.3.6.RELEASE/libs/spring-web-4.3.6.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../SSM JAVAEE框架/spring framework/spring-framework-4.3.6.RELEASE-dist/spring-framework-4.3.6.RELEASE/libs/spring-webmvc-4.3.6.RELEASE.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
